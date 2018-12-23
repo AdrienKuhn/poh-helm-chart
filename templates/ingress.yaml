@@ -1,0 +1,59 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "poh.fullname" . -}}
+{{- $httpIngressPaths := .Values.ingress.http.paths -}}
+{{- $dohIngressPaths := .Values.ingress.doh.paths -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app.kubernetes.io/name: {{ include "poh.name" . }}
+    helm.sh/chart: {{ include "poh.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if .Values.ingress.enabled }}
+  tls:
+  {{- range .Values.ingress.http.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+  {{- range .Values.ingress.doh.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+{{- end }}
+  rules:
+  {{- range .Values.ingress.http.hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+	{{- range $httpIngressPaths }}
+          - path: {{ . }}
+            backend:
+              serviceName: {{ $fullName }}-http
+              servicePort: 80
+	{{- end }}
+  {{- end }}
+  {{- range .Values.ingress.doh.hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+	{{- range $dohIngressPaths }}
+          - path: {{ . }}
+            backend:
+              serviceName: {{ $fullName }}-doh
+              servicePort: 8080
+	{{- end }}
+  {{- end }}
+{{- end }}

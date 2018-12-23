@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "poh.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "poh.name" . }}
+    helm.sh/chart: {{ include "poh.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "poh.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "poh.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-pihole
+          image: "{{ .Values.deployments.pihole.image.repository }}:{{ .Values.deployments.pihole.image.tag }}"
+          imagePullPolicy: {{ .Values.deployments.pihole.image.pullPolicy }}
+          env:
+            - name: ServerIP
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}
+                  key: ServerIP
+            - name: VIRTUAL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}
+                  key: VIRTUAL_HOST
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}
+                  key: TZ
+            - name: DNS1
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}
+                  key: DNS1
+            - name: DNS2
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}
+                  key: DNS2
+            - name: WEBPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "poh.fullname" . }}
+                  key: WEBPASSWORD
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 120
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          restartPolicy: {{ .Values.restartPolicy }}
+          volumeMounts:
+            - mountPath: /etc/pihole/
+              name: pihole-storage
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        - name: {{ .Chart.Name }}-doh-httpproxy
+          image: "{{ .Values.deployments.dohHttpProxy.image.repository }}:{{ .Values.deployments.dohHttpProxy.image.tag }}"
+          imagePullPolicy: {{ .Values.deployments.dohHttpProxy.image.pullPolicy }}
+          env:
+            - name: LISTEN_ADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: RESOLVER
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          ports:
+            - name: doh
+              containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 120
+            periodSeconds: 10
+          restartPolicy: {{ .Values.restartPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: pihole-storage
+          persistentVolumeClaim:
+            claimName: {{ include "poh.fullname" . }}-pihole
