@@ -9,13 +9,19 @@ This Helm chart deploy [Pi-hole](https://pi-hole.net/) with a [DNS over HTTPS pr
 - [LetsEncrypt Cluster Issuer](https://cert-manager.readthedocs.io/en/latest/getting-started/3-configuring-first-issuer.html) named "letsencrypt-production" (the name can be changed in `values.yaml` file)
 - [ingress-nginx](https://github.com/kubernetes/ingress-nginx)
 
-## Usage example
+## Installation
+
+### Add repository
+
+Follow instructions at [https://adrienkuhn.github.io/helm-repo/](https://adrienkuhn.github.io/helm-repo/)
+
+### Install
 
 ```bash
-# Clone this repo and then
-helm install . \
+helm install adrienkuhn-helm-repo/poh \
     --name=poh \
     --namespace=poh \
+    --version 0.0.1 \
     --set config.ServerIP={Load Balancer IP} \
     --set config.VIRTUAL_HOST={pihole.example.org} \
     --set secrets.WEBPASSWORD={Pihole UI strong password} \
