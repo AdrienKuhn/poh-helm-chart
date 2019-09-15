@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
+  labels:
+{{ include "poh.labels" . | indent 4 }}
+data:
+{{- range $key, $value := .Values.poh.config }}
+  {{ $key }}: "{{ $value }}"
+{{- end }}

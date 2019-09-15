@@ -21,17 +21,14 @@ Follow instructions at [https://adrienkuhn.github.io/helm-repo/](https://adrienk
 helm install adrienkuhn-helm-repo/poh \
     --name=poh \
     --namespace=poh \
-    --version 0.0.1 \
-    --set config.ServerIP={Load Balancer IP} \
-    --set config.VIRTUAL_HOST={pihole.example.org} \
-    --set secrets.WEBPASSWORD={Pihole UI strong password} \
+    --version 0.0.2 \
+    --set poh.config.VIRTUAL_HOST={pihole.example.org} \
+    --set poh.secrets.WEBPASSWORD={Pihole UI strong password} \
     --set ingress.enabled=true \
-    --set ingress.http.hosts\[0\]={pihole.example.org} \
-    --set ingress.http.tls\[0\].hosts\[0\]={pihole.example.org} \
-    --set ingress.http.tls\[0\].secretName=pihole-tls \
-    --set ingress.doh.hosts\[0\]={dns.example.org} \
-    --set ingress.doh.tls\[0\].hosts\[0\]={dns.example.org} \
-    --set ingress.doh.tls\[0\].secretName=doh-tls
+    --set ingress.hosts\[0\].host={pihole.example.org} \
+    --set ingress.hosts\[0\].paths\[0\]="/" \
+    --set ingress.tls\[0\].secretName=poh-tls \
+    --set ingress.tls\[0\].hosts\[0\]={pihole.example.org} \
 ```
 
 ## DNS Queries
