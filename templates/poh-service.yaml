@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
+  labels:
+{{ include "poh.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.poh.service.doh.type }}
+  ports:
+    - port: {{ .Values.poh.service.doh.port }}
+      targetPort: {{ .Values.poh.service.doh.targetPort }}
+      protocol: {{ .Values.poh.service.doh.protocol }}
+      name: doh
+    - port: {{ .Values.poh.service.pihole.port }}
+      targetPort: {{ .Values.poh.service.pihole.targetPort }}
+      protocol: {{ .Values.poh.service.pihole.protocol }}
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "poh.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

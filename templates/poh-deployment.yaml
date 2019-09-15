@@ -1,14 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "poh.fullname" . }}
+  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
   labels:
-    app.kubernetes.io/name: {{ include "poh.name" . }}
-    helm.sh/chart: {{ include "poh.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "poh.labels" . | indent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.poh.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "poh.name" . }}
@@ -20,39 +17,34 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
-        - name: {{ .Chart.Name }}-pihole
-          image: "{{ .Values.deployments.pihole.image.repository }}:{{ .Values.deployments.pihole.image.tag }}"
-          imagePullPolicy: {{ .Values.deployments.pihole.image.pullPolicy }}
+        - name: {{ .Chart.Name }}-{{ .Values.poh.pihole.name }}
+          image: "{{ .Values.poh.pihole.image.repository }}:{{ .Values.poh.pihole.image.tag }}"
+          imagePullPolicy: {{ .Values.poh.pihole.image.pullPolicy }}
           env:
-            - name: ServerIP
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "poh.fullname" . }}
-                  key: ServerIP
             - name: VIRTUAL_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "poh.fullname" . }}
+                  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
                   key: VIRTUAL_HOST
             - name: TZ
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "poh.fullname" . }}
+                  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
                   key: TZ
             - name: DNS1
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "poh.fullname" . }}
+                  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
                   key: DNS1
             - name: DNS2
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "poh.fullname" . }}
+                  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
                   key: DNS2
             - name: WEBPASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "poh.fullname" . }}
+                  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
                   key: WEBPASSWORD
           livenessProbe:
             httpGet:
@@ -71,10 +63,10 @@ spec:
             - mountPath: /etc/pihole/
               name: pihole-storage
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-        - name: {{ .Chart.Name }}-doh-httpproxy
-          image: "{{ .Values.deployments.dohHttpProxy.image.repository }}:{{ .Values.deployments.dohHttpProxy.image.tag }}"
-          imagePullPolicy: {{ .Values.deployments.dohHttpProxy.image.pullPolicy }}
+            {{- toYaml .Values.poh.pihole.resources | nindent 12 }}
+        - name: {{ .Chart.Name }}-{{ .Values.poh.doh.name }}
+          image: "{{ .Values.poh.doh.image.repository }}:{{ .Values.poh.doh.image.tag }}"
+          imagePullPolicy: {{ .Values.poh.doh.image.pullPolicy }}
           env:
             - name: LISTEN_ADDRESS
               valueFrom:
@@ -98,22 +90,22 @@ spec:
               port: 8080
             initialDelaySeconds: 120
             periodSeconds: 10
-          restartPolicy: {{ .Values.restartPolicy }}
+          restartPolicy: {{ .Values.poh.restartPolicy }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+            {{- toYaml .Values.poh.doh.resources | nindent 12 }}
+      {{- with .Values.poh.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.affinity }}
+    {{- with .Values.poh.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with .Values.tolerations }}
+    {{- with .Values.poh.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
         - name: pihole-storage
           persistentVolumeClaim:
-            claimName: {{ include "poh.fullname" . }}-pihole
+            claimName: {{ include "poh.fullname" . }}-{{ .Values.poh.pihole.name }}

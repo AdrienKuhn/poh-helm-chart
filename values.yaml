@@ -5,82 +5,122 @@
 nameOverride: ""
 fullnameOverride: ""
 
-replicaCount: 1
+poh:
+  name: poh
 
-deployments:
+  replicaCount: 1
+
   pihole:
+    name: pihole
     image:
       repository: pihole/pihole
       tag: latest
       pullPolicy: Always
-  dohHttpProxy:
+    resources: {}
+      # We usually recommend not to specify default resources and to leave this as a conscious
+      # choice for the user. This also increases chances charts run on environments with little
+      # resources, such as Minikube. If you do want to specify resources, uncomment the following
+      # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+      # limits:
+      #  cpu: 100m
+      #  memory: 128Mi
+      # requests:
+      #  cpu: 100m
+      #  memory: 128Mi
+
+  doh:
+    name: doh-http-proxy
     image:
       repository: krewh/doh-httpproxy
       tag: latest
       pullPolicy: Always
+    resources: {}
+      # We usually recommend not to specify default resources and to leave this as a conscious
+      # choice for the user. This also increases chances charts run on environments with little
+      # resources, such as Minikube. If you do want to specify resources, uncomment the following
+      # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+      # limits:
+      #  cpu: 100m
+      #  memory: 128Mi
+      # requests:
+      #  cpu: 100m
+      #  memory: 128Mi
 
-config:
-  ServerIP: 127.0.0.1
-  VIRTUAL_HOST: 127.0.0.1
-  TZ: UTC
-  DNS1: 9.9.9.9
-  DNS2: 149.112.112.112
+  secrets:
+    WEBPASSWORD: changeMe
 
-secrets:
-  WEBPASSWORD: changeMe
+  config:
+    VIRTUAL_HOST: 127.0.0.1
+    TZ: UTC
+    DNS1: 9.9.9.9
+    DNS2: 149.112.112.112
 
-services:
-  http:
+  service:
+    pihole:
+      type: ClusterIP
+      port: 80
+      targetPort: 80
+      protocol: TCP
+    doh:
+      type: ClusterIP
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+nginx:
+  name: nginx
+
+  replicaCount: 1
+  restartPolicy: Always
+
+  image:
+    repository: krewh/hardened-nginx
+    tag: latest
+    pullPolicy: Always
+
+  service:
     type: ClusterIP
-    port: 80
-    targetPort: 80
+    port: 443
+    targetPort: 443
     protocol: TCP
-  doh:
-    type: ClusterIP
-    port: 8080
-    targetPort: 8080
-    protocol: TCP
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
 
 ingress:
   enabled: false
   annotations:
     kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     certmanager.k8s.io/cluster-issuer: "letsencrypt-production"
-  http:
-    paths:
-      - /
-    hosts: []
-    # - chart-example.local
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
-  doh:
-    paths:
-      - /
-    hosts: []
-      # - chart-example.local
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
+    #kubernetes.io/tls-acme: "true"
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #  cpu: 100m
-  #  memory: 128Mi
-  # requests:
-  #  cpu: 100m
-  #  memory: 128Mi
+  hosts:
+    - host: chart-example.local
+      paths: []
 
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
-restartPolicy: Always
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
