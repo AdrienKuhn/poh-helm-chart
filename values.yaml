@@ -14,7 +14,7 @@ poh:
     name: pihole
     image:
       repository: pihole/pihole
-      tag: latest
+      tag: 4.3.2-1
       pullPolicy: Always
     resources: {}
       # We usually recommend not to specify default resources and to leave this as a conscious
@@ -32,7 +32,7 @@ poh:
     name: doh-http-proxy
     image:
       repository: krewh/doh-httpproxy
-      tag: latest
+      tag: 0.0.1
       pullPolicy: Always
     resources: {}
       # We usually recommend not to specify default resources and to leave this as a conscious
