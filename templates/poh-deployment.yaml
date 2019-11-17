@@ -41,6 +41,11 @@ spec:
                 configMapKeyRef:
                   name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
                   key: DNS2
+            - name: DNSSEC
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
+                  key: DNSSEC
             - name: WEBPASSWORD
               valueFrom:
                 secretKeyRef:

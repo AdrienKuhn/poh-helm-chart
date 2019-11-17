@@ -54,6 +54,7 @@ poh:
     TZ: UTC
     DNS1: 9.9.9.9
     DNS2: 149.112.112.112
+    DNSSEC: 1
 
   service:
     pihole:
