@@ -43,3 +43,11 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
+
+{{/*
+Return secret name to be used based on provided values.
+*/}}
+{{- define "poh.secretName" -}}
+{{- $fullName := include "poh.fullname" . -}}
+{{- default $fullName .Values.existingSecret | quote -}}
+{{- end -}}

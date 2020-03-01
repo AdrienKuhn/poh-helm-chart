@@ -46,6 +46,7 @@ poh:
       #  cpu: 100m
       #  memory: 128Mi
 
+  existingSecret:
   secrets:
     WEBPASSWORD: changeMe
 
