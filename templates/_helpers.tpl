@@ -49,5 +49,5 @@ Return secret name to be used based on provided values.
 */}}
 {{- define "poh.secretName" -}}
 {{- $fullName := include "poh.fullname" . -}}
-{{- default $fullName .Values.existingSecret | quote -}}
+{{- default $fullName .Values.poh.existingSecret | quote -}}
 {{- end -}}
