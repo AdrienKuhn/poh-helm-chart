@@ -24,6 +24,7 @@ helm install adrienkuhn-helm-repo/poh \
     --version 0.0.2 \
     --set poh.config.VIRTUAL_HOST={pihole.example.org} \
     --set poh.secrets.WEBPASSWORD={Pihole UI strong password} \
+    --set nginx.config.adminAuthorizedIps={your public IP or subnet} \
     --set ingress.enabled=true \
     --set ingress.hosts\[0\].host={pihole.example.org} \
     --set ingress.hosts\[0\].paths\[0\]="/" \

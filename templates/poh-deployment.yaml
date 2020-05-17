@@ -15,6 +15,8 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "poh.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        configChecksum: {{ include (print .Template.BasePath "/poh-configMap.yaml") . | sha256sum | trunc 63 }}
     spec:
       containers:
         - name: {{ .Chart.Name }}-{{ .Values.poh.pihole.name }}

@@ -81,6 +81,9 @@ nginx:
   replicaCount: 1
   restartPolicy: Always
 
+  config:
+    adminAuthorizedIps: 0.0.0.0/0
+
   image:
     repository: krewh/hardened-nginx
     tag: latest
