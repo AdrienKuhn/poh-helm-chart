@@ -32,7 +32,7 @@ poh:
     name: doh-http-proxy
     image:
       repository: krewh/doh-httpproxy
-      tag: 0.0.1
+      tag: 0.0.2
       pullPolicy: Always
     resources: {}
       # We usually recommend not to specify default resources and to leave this as a conscious
