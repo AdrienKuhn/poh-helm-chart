@@ -68,6 +68,11 @@ poh:
       port: 8080
       targetPort: 8080
       protocol: TCP
+    dns:
+      type: ClusterIP
+      port: 53
+      targetPort: 53
+      protocol: TCP
 
   nodeSelector: {}
 
@@ -90,10 +95,16 @@ nginx:
     pullPolicy: Always
 
   service:
-    type: ClusterIP
-    port: 443
-    targetPort: 443
-    protocol: TCP
+    https:
+      type: ClusterIP
+      port: 443
+      targetPort: 443
+      protocol: TCP
+    dot:
+      type: ClusterIP
+      port: 853
+      targetPort: 853
+      protocol: TCP
 
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious

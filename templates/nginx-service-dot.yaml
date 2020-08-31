@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}-dot
+  labels:
+{{ include "poh.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.nginx.service.dot.type }}
+  ports:
+    - port: {{ .Values.nginx.service.dot.port }}
+      targetPort: {{ .Values.nginx.service.dot.targetPort }}
+      protocol: {{ .Values.nginx.service.dot.protocol }}
+      name: dot
+  selector:
+    app.kubernetes.io/name: {{ include "poh.name" . }}-nginx
+    app.kubernetes.io/instance: {{ .Release.Name }}

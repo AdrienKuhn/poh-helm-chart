@@ -1,7 +1,7 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "poh.fullname" . -}}
 {{- $nginxName := .Values.nginx.name -}}
-{{- $nginxPort := .Values.nginx.service.port -}}
+{{- $nginxPort := .Values.nginx.service.dot.port -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -31,7 +31,7 @@ spec:
         {{- range .paths }}
           - path: {{ . }}
             backend:
-              serviceName: {{ $fullName }}-{{ $nginxName }}
+              serviceName: {{ $fullName }}-{{ $nginxName }}-dot
               servicePort: {{ $nginxPort }}
         {{- end }}
   {{- end }}

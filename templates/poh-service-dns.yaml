@@ -1,16 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}
+  name: {{ include "poh.fullname" . }}-{{ .Values.poh.name }}-dns
   labels:
 {{ include "poh.labels" . | indent 4 }}
 spec:
-  type: {{ .Values.poh.service.doh.type }}
+  type: {{ .Values.poh.service.pihole.type }}
   ports:
-    - port: {{ .Values.poh.service.doh.port }}
-      targetPort: {{ .Values.poh.service.doh.targetPort }}
-      protocol: {{ .Values.poh.service.doh.protocol }}
-      name: doh
     - port: {{ .Values.poh.service.pihole.port }}
       targetPort: {{ .Values.poh.service.pihole.targetPort }}
       protocol: {{ .Values.poh.service.pihole.protocol }}
