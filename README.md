@@ -80,9 +80,9 @@ helm install poh adrienkuhn-helm-repo/poh
 | `nginx.service.https.port`        | HTTP service port                                | `443`                  |
 | `nginx.service.https.targetPort`  | HTTP container port                              | `443`                  |
 | `nginx.service.https.protocol`    | HTTP service protocol                            | `TCP`                  |
-| `nginx.service.dot.port`          | DNS service port                                 | `853`                  |
-| `nginx.service.dot.targetPort`    | DNS container port                               | `853`                  |
-| `nginx.service.dot.protocol`      | DNS service protocol                             | `TCP`                  |
+| `nginx.service.dot.port`          | DoT Gateway service port                         | `853`                  |
+| `nginx.service.dot.targetPort`    | DoT Gateway container port                       | `853`                  |
+| `nginx.service.dot.protocol`      | DoT Gateway service protocol                     | `TCP`                  |
 | `nginx.resources`                 | Resources requests and limits                    | `{}`                   |
 | `nginx.nodeSelector`              | Node selectors                                   | `{}`                   |
 | `nginx.tolerations`               | Node tolerations                                 | `[]`                   |
