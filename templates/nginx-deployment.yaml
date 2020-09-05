@@ -8,12 +8,12 @@ spec:
   replicas: {{ .Values.nginx.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "poh.name" . }}-nginx
+      app.kubernetes.io/name: {{ include "poh.name" . }}-{{ .Values.nginx.name }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "poh.name" . }}-nginx
+        app.kubernetes.io/name: {{ include "poh.name" . }}-{{ .Values.nginx.name }}
         app.kubernetes.io/instance: {{ .Release.Name }}
       annotations:
         configChecksum: {{ include (print .Template.BasePath "/nginx-configMap.yaml") . | sha256sum | trunc 63 }}
@@ -24,13 +24,18 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       containers:
-        - name: {{ .Chart.Name }}-nginx
+        - name: {{ .Chart.Name }}-{{ .Values.nginx.name }}
           image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}"
           imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
           ports:
             - name: https
-              containerPort: 443
+              containerPort: {{ .Values.nginx.service.https.targetPort }}
               protocol: TCP
+            {{- if .Values.nginx.config.dnsOverTlsGateway.enabled }}
+            - name: dot
+              containerPort: {{ .Values.nginx.service.dot.targetPort }}
+              protocol: TCP
+            {{- end }}
           livenessProbe:
             tcpSocket:
               port: 443
@@ -60,5 +65,5 @@ spec:
     {{- end }}
       volumes:
         - configMap:
-            name: {{ include "poh.fullname" . }}-nginx
+            name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}
           name: nginx-config

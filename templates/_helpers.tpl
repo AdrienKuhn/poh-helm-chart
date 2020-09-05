@@ -47,7 +47,10 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Return secret name to be used based on provided values.
 */}}
-{{- define "poh.secretName" -}}
-{{- $fullName := include "poh.fullname" . -}}
-{{- default $fullName .Values.poh.existingSecret | quote -}}
+{{- define "pihole.secretName" -}}
+{{- if .Values.pihole.existingSecret -}}
+{{ .Values.pihole.existingSecret | quote }}
+{{- else -}}
+{{ include "poh.fullname" . }}-pihole
+{{- end -}}
 {{- end -}}
