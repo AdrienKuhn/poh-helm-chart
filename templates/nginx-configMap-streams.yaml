@@ -7,7 +7,7 @@ metadata:
 {{ include "poh.labels" . | indent 4 }}
 data:
   stream.conf: |
-    {{- if .Values.nginx.config.dnsOverTlsGateway.enabled -}}
+    {{- if .Values.nginx.config.dnsOverTlsGateway.enabled }}
     # DNS upstream pool
     upstream dns {
         zone dns 64k;
@@ -19,4 +19,4 @@ data:
         listen 853; # SSL termination is done on LB/Proxy side
         proxy_pass dns;
     }
-    {{- end -}}
+    {{- end }}
