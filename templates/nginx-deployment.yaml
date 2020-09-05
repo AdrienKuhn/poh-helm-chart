@@ -16,7 +16,8 @@ spec:
         app.kubernetes.io/name: {{ include "poh.name" . }}-{{ .Values.nginx.name }}
         app.kubernetes.io/instance: {{ .Release.Name }}
       annotations:
-        configChecksum: {{ include (print .Template.BasePath "/nginx-configMap.yaml") . | sha256sum | trunc 63 }}
+        sitesConfigChecksum: {{ include (print .Template.BasePath "/nginx-configMap-sites.yaml") . | sha256sum | trunc 63 }}
+        streamsConfigChecksum: {{ include (print .Template.BasePath "/nginx-configMap-streams.yaml") . | sha256sum | trunc 63 }}
     spec:
       restartPolicy: {{ .Values.nginx.restartPolicy }}
     {{- with .Values.nginx.imagePullSecrets }}
@@ -49,8 +50,10 @@ spec:
           resources:
             {{- toYaml .Values.nginx.resources | nindent 12 }}
           volumeMounts:
-            - mountPath: /etc/nginx/conf.d/
-              name: nginx-config
+            - mountPath: /etc/nginx/conf.d/sites
+              name: nginx-sites
+            - mountPath: /etc/nginx/conf.d/streams
+              name: nginx-streams
       {{- with .Values.nginx.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -65,5 +68,8 @@ spec:
     {{- end }}
       volumes:
         - configMap:
-            name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}
-          name: nginx-config
+            name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}-sites
+          name: nginx-sites
+        - configMap:
+            name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}-streams
+          name: nginx-streams

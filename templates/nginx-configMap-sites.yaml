@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}
+  name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}-sites
   labels:
 {{ include "poh.labels" . | indent 4 }}
 data:
@@ -50,19 +50,3 @@ data:
       }
       {{- end -}}
     }
-
-    {{- if .Values.nginx.config.dnsOverTlsGateway.enabled -}}
-    stream {
-      # DNS upstream pool
-      upstream dns {
-          zone dns 64k;
-          server 127.0.0.1:53;
-      }
-
-      # DoT server for decryption
-      server {
-          listen 853 ssl;
-          proxy_pass dns;
-      }
-    }
-    {{- end -}}

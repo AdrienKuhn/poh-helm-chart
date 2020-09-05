@@ -101,7 +101,7 @@ nginx:
 
   image:
     repository: krewh/hardened-nginx
-    tag: latest
+    tag: stream-support
     pullPolicy: Always
 
   config:
