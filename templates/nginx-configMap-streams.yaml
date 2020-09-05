@@ -18,5 +18,6 @@ data:
     server {
         listen 853 ssl;
         proxy_pass dns;
+        proxy_ssl_verify off;
     }
     {{- end -}}
