@@ -11,13 +11,12 @@ data:
     # DNS upstream pool
     upstream dns {
         zone dns 64k;
-        server 10.97.101.125:53;
+        server {{ include "poh.fullname" . }}-{{ .Values.pihole.name }}:{{ .Values.pihole.service.dns.port }};
     }
 
     # DoT server for decryption
     server {
-        listen 853 ssl;
+        listen 853; # SSL termination is done on LB/Proxy side
         proxy_pass dns;
-        proxy_ssl_verify off;
     }
     {{- end -}}
