@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "poh.fullname" . }}-{{ .Values.pihole.name }}
+  labels:
+{{ include "poh.labels" . | indent 4 }}
+data:
+  virtualHost: "{{ .Values.pihole.config.virtualHost }}"
+  tz: "{{ .Values.pihole.config.tz }}"
+  dns1: "{{ .Values.pihole.config.dns1 }}"
+  dns2: "{{ .Values.pihole.config.dns2 }}"
+  dnsSec: "{{ .Values.pihole.config.dnsSec }}"

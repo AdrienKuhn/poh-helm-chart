@@ -7,10 +7,16 @@ metadata:
 spec:
   type: {{ .Values.nginx.service.type }}
   ports:
-    - port: {{ .Values.nginx.service.port }}
-      targetPort: 443
-      protocol: TCP
+    - port: {{ .Values.nginx.service.https.port }}
+      targetPort: {{ .Values.nginx.service.https.targetPort }}
+      protocol: {{ .Values.nginx.service.https.protocol }}
       name: https
+    {{- if .Values.nginx.config.dnsOverTlsGateway.enabled }}
+    - port: {{ .Values.nginx.service.dot.port }}
+      targetPort: {{ .Values.nginx.service.dot.targetPort }}
+      protocol: {{ .Values.nginx.service.dot.protocol }}
+      name: dot
+    {{- end }}
   selector:
-    app.kubernetes.io/name: {{ include "poh.name" . }}-nginx
+    app.kubernetes.io/name: {{ include "poh.name" . }}-{{ .Values.nginx.name }}
     app.kubernetes.io/instance: {{ .Release.Name }}

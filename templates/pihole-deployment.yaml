@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "poh.fullname" . }}-{{ .Values.pihole.name }}
+  labels:
+{{ include "poh.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.pihole.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "poh.name" . }}-{{ .Values.pihole.name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "poh.name" . }}-{{ .Values.pihole.name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        configChecksum: {{ include (print .Template.BasePath "/pihole-configMap.yaml") . | sha256sum | trunc 63 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.pihole.name }}
+          image: "{{ .Values.pihole.image.repository }}:{{ .Values.pihole.image.tag }}"
+          imagePullPolicy: {{ .Values.pihole.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.pihole.service.http.targetPort }}
+              protocol: TCP
+            - name: dns
+              containerPort: {{ .Values.pihole.service.dns.targetPort }}
+              protocol: TCP
+          env:
+            - name: VIRTUAL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}-{{ .Values.pihole.name }}
+                  key: virtualHost
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}-{{ .Values.pihole.name }}
+                  key: tz
+            - name: DNS1
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}-{{ .Values.pihole.name }}
+                  key: dns1
+            - name: DNS2
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}-{{ .Values.pihole.name }}
+                  key: dns2
+            - name: DNSSEC
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "poh.fullname" . }}-{{ .Values.pihole.name }}
+                  key: dnsSec
+            - name: WEBPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pihole.secretName" . }}
+                  key: webPassword
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 120
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          restartPolicy: {{ .Values.restartPolicy }}
+          volumeMounts:
+            - mountPath: /etc/pihole/
+              name: pihole-storage
+          resources:
+            {{- toYaml .Values.pihole.resources | nindent 12 }}
+      {{- with .Values.pihole.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.pihole.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.pihole.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: pihole-storage
+          persistentVolumeClaim:
+            claimName: {{ include "poh.fullname" . }}-{{ .Values.pihole.name }}

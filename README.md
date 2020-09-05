@@ -2,7 +2,8 @@
 
 ## Proof of Concept
 
-This Helm chart deploy [Pi-hole](https://pi-hole.net/) with a [DNS over HTTPS proxy](https://github.com/facebookexperimental/doh-proxy) on a single pod in a Kubernetes cluster.
+This Helm chart deploy [Pi-hole](https://pi-hole.net/) with a [DNS over HTTPS proxy](https://github.com/facebookexperimental/doh-proxy).  
+DNS over TLS gateway is not functional yet.
 
 ## Requirements
 - [cert-manager](https://github.com/jetstack/cert-manager)
@@ -18,19 +19,79 @@ Follow instructions at [https://adrienkuhn.github.io/helm-repo/](https://adrienk
 ### Install
 
 ```bash
-helm install adrienkuhn-helm-repo/poh \
-    --name=poh \
-    --namespace=poh \
-    --version 0.0.2 \
-    --set poh.config.VIRTUAL_HOST={pihole.example.org} \
-    --set poh.secrets.WEBPASSWORD={Pihole UI strong password} \
-    --set nginx.config.adminAuthorizedIps={your public IP or subnet} \
-    --set ingress.enabled=true \
-    --set ingress.hosts\[0\].host={pihole.example.org} \
-    --set ingress.hosts\[0\].paths\[0\]="/" \
-    --set ingress.tls\[0\].secretName=poh-tls \
-    --set ingress.tls\[0\].hosts\[0\]={pihole.example.org} \
+helm install poh adrienkuhn-helm-repo/poh
 ```
+
+## Configuration
+
+| Variable                          | Description                                      | Default                |
+| --------------------------------- | ------------------------------------------------ | ---------------------- |
+| `nameOverride`                    | Chart name override                              | `""`                   |
+| `fullnameOverride`                | Full Chart name override                         | `""`                   |
+| `pihole.name`                     | Name for the Pi-hole deployment                  | `pihole`               |
+| `pihole.replicaCount`             | Number of replicas                               | `1`                    |
+| `pihole.restartPolicy`            | Restart policy                                   | `Always`               |
+| `pihole.image.repository`         | Docker repository                                | `pihole/pihole`        |
+| `pihole.image.tag`                | Docker tag                                       | `v5.1.2`               |
+| `pihole.image.pullPolicy`         | Pull policy                                      | `Always`               |
+| `pihole.existingSecret`           | Name of an existing secret                       | `nil`                  |
+| `pihole.secrets.webPassword`      | Web admin password, if existingSecret is not set | `changeMe`             |
+| `pihole.config.virtualHost`       | Pi-hole virtual host                             | `127.0.0.1`            |
+| `pihole.config.tz`                | Pi-hole timezone                                 | `UTC`                  |
+| `pihole.config.dns1`              | Upstream DNS server 1                            | `9.9.9.9`              |
+| `pihole.config.dns2`              | Upstream DNS server 2                            | `149.112.112.112`      |
+| `pihole.config.dnsSec`            | Enable DNSSEC                                    | `1`                    |
+| `pihole.resources`                | Resources requests and limits                    | `{}`                   |
+| `pihole.service.type`             | Service type                                     | `ClusterIP`            |
+| `pihole.service.http.port`        | HTTP service port                                | `80`                   |
+| `pihole.service.http.targetPort`  | HTTP container port                              | `80`                   |
+| `pihole.service.http.protocol`    | HTTP service protocol                            | `TCP`                  |
+| `pihole.service.dns.port`         | DNS service port                                 | `53`                   |
+| `pihole.service.dns.targetPort`   | DNS container port                               | `53`                   |
+| `pihole.service.dns.protocol`     | DNS service protocol                             | `TCP`                  |
+| `pihole.nodeSelector`             | Node selectors                                   | `{}`                   |
+| `pihole.tolerations`              | Node tolerations                                 | `[]`                   |
+| `pihole.affinity`                 | Node affinities                                  | `{}`                   |
+| `dohProxy.name`                   | Name for the DoH proxy deployment                | `doh-http-proxy`       |
+| `dohProxy.enabled`                | Enable DoH proxy                                 | `false`                |
+| `dohProxy.replicaCount`           | Number of replicas                               | `1`                    |
+| `dohProxy.restartPolicy`          | Restart Policy                                   | `Always`               |
+| `dohProxy.image.repository`       | Docker repository                                | `krewh/doh-httpproxy`  |
+| `dohProxy.image.tag`              | Docker tag                                       | `0.0.3`                |
+| `dohProxy.image.pullPolicy`       | Pull policy                                      | `Always`               |
+| `dohProxy.resources`              | Resources requests and limits                    | `{}`                   |
+| `dohProxy.service.type`           | Service type                                     | `ClusterIP`            |
+| `dohProxy.service.port`           | HTTP service port                                | `8080`                 |
+| `dohProxy.service.targetPort`     | HTTP container port                              | `8080`                 |
+| `dohProxy.service.protocol`       | HTTP service protocol                            | `TCP`                  |
+| `dohProxy.nodeSelector`           | Node selectors                                   | `{}`                   |
+| `dohProxy.tolerations`            | Node tolerations                                 | `[]`                   |
+| `dohProxy.affinity`               | Node affinities                                  | `{}`                   |
+| `nginx.name`                      | Name for the nginx deployment                    | `nginx`                |
+| `nginx.replicaCount`              | Number of replicas                               | `1`                    |
+| `nginx.restartPolicy`             | Restart policy                                   | `Always`               |
+| `nginx.image.repository`          | Docker repository                                | `krewh/hardened-nginx` |
+| `nginx.image.tag`                 | Docker tag                                       | `latest`               |
+| `nginx.image.pullPolicy`          | Pull policy                                      | `Always`               |
+| `nginx.adminAuthorizedIps`        | IP range authorized to access the Pi-hole web UI | `0.0.0.0/0`            |
+| `nginx.dnsOverTlsGateway.enabled` | Enable the DoT gateway                           | `false`                |
+| `nginx.dnsQueryLogging.enabled`   | Enable DNS query logging in Nginx logs           | `false`                |
+| `nginx.service.type`              | Service type                                     | `ClusterIP`            |
+| `nginx.service.https.port`        | HTTP service port                                | `443`                  |
+| `nginx.service.https.targetPort`  | HTTP container port                              | `443`                  |
+| `nginx.service.https.protocol`    | HTTP service protocol                            | `TCP`                  |
+| `nginx.service.dot.port`          | DoT Gateway service port                         | `853`                  |
+| `nginx.service.dot.targetPort`    | DoT Gateway container port                       | `853`                  |
+| `nginx.service.dot.protocol`      | DoT Gateway service protocol                     | `TCP`                  |
+| `nginx.resources`                 | Resources requests and limits                    | `{}`                   |
+| `nginx.nodeSelector`              | Node selectors                                   | `{}`                   |
+| `nginx.tolerations`               | Node tolerations                                 | `[]`                   |
+| `nginx.affinity`                  | Node affinities                                  | `{}`                   |
+| `ingress.enabled`                 | Enable ingress                                   | `false`                |
+| `ingress.annotations`             | Ingress annotations                              | See values.yaml        |
+| `ingress.hosts`                   | Ingress hosts configuration                      | See values.yaml        |
+| `ingress.tls`                     | Ingress TLS configuration                        | `[]`                   |
+
 
 ## DNS Queries
 

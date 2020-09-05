@@ -5,69 +5,87 @@
 nameOverride: ""
 fullnameOverride: ""
 
-poh:
-  name: poh
+pihole:
+  name: pihole
 
   replicaCount: 1
+  restartPolicy: Always
 
-  pihole:
-    name: pihole
-    image:
-      repository: pihole/pihole
-      tag: v5.0
-      pullPolicy: Always
-    resources: {}
-      # We usually recommend not to specify default resources and to leave this as a conscious
-      # choice for the user. This also increases chances charts run on environments with little
-      # resources, such as Minikube. If you do want to specify resources, uncomment the following
-      # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-      # limits:
-      #  cpu: 100m
-      #  memory: 128Mi
-      # requests:
-      #  cpu: 100m
-      #  memory: 128Mi
-
-  doh:
-    name: doh-http-proxy
-    image:
-      repository: krewh/doh-httpproxy
-      tag: 0.0.2
-      pullPolicy: Always
-    resources: {}
-      # We usually recommend not to specify default resources and to leave this as a conscious
-      # choice for the user. This also increases chances charts run on environments with little
-      # resources, such as Minikube. If you do want to specify resources, uncomment the following
-      # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-      # limits:
-      #  cpu: 100m
-      #  memory: 128Mi
-      # requests:
-      #  cpu: 100m
-      #  memory: 128Mi
+  image:
+    repository: pihole/pihole
+    tag: v5.1.2
+    pullPolicy: Always
 
   existingSecret:
   secrets:
-    WEBPASSWORD: changeMe
+    webPassword: changeMe
 
   config:
-    VIRTUAL_HOST: 127.0.0.1
-    TZ: UTC
-    DNS1: 9.9.9.9
-    DNS2: 149.112.112.112
-    DNSSEC: 1
+    virtualHost: 127.0.0.1
+    tz: UTC
+    dns1: 9.9.9.9
+    dns2: 149.112.112.112
+    dnsSec: 1
 
   service:
-    pihole:
-      type: ClusterIP
+    type: ClusterIP
+    http:
       port: 80
       targetPort: 80
       protocol: TCP
-    doh:
-      type: ClusterIP
-      port: 8080
-      targetPort: 8080
+    dns:
+      port: 53
+      targetPort: 53
       protocol: TCP
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+dohProxy:
+  name: doh-httpproxy
+
+  enabled: false
+
+  replicaCount: 1
+  restartPolicy: Always
+
+  image:
+    repository: krewh/doh-httpproxy
+    tag: 0.0.3
+    pullPolicy: Always
+
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
 
   nodeSelector: {}
 
@@ -81,19 +99,28 @@ nginx:
   replicaCount: 1
   restartPolicy: Always
 
-  config:
-    adminAuthorizedIps: 0.0.0.0/0
-
   image:
     repository: krewh/hardened-nginx
     tag: latest
     pullPolicy: Always
 
+  config:
+    adminAuthorizedIps: 0.0.0.0/0
+    dnsOverTlsGateway:
+      enabled: false
+    dnsQueryLogging:
+      enabled: false
+
   service:
     type: ClusterIP
-    port: 443
-    targetPort: 443
-    protocol: TCP
+    https:
+      port: 443
+      targetPort: 443
+      protocol: TCP
+    dot:
+      port: 853
+      targetPort: 853
+      protocol: TCP
 
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
