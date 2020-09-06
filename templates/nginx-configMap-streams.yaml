@@ -19,8 +19,8 @@ data:
         listen 853 {{- if .Values.nginx.config.dnsOverTlsGateway.sslTermination }} ssl{{- end }} {{- if .Values.nginx.config.dnsOverTlsGateway.proxyProtocol }} proxy-protocol{{- end }};
 
         {{- if .Values.nginx.config.dnsOverTlsGateway.sslTermination }}
-        ssl_certificate /etc/nginx/ssl/tls.crt;
-        ssl_certificate_key /etc/nginx/ssl/tls.key;
+        ssl_certificate /etc/nginx/ssl/dot/tls.crt;
+        ssl_certificate_key /etc/nginx/ssl/dot/tls.key;
         {{- end }}
 
         proxy_pass dns;

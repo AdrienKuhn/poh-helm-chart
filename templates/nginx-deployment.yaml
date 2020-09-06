@@ -56,7 +56,7 @@ spec:
               name: nginx-streams
             {{- if and .Values.nginx.config.dnsOverTlsGateway.enabled .Values.nginx.config.dnsOverTlsGateway.sslTermination }}
             - name: ssl-certificates
-              mountPath: "/etc/nginx/ssl"
+              mountPath: "/etc/nginx/ssl/dot"
               readOnly: true
             {{- end }}
       {{- with .Values.nginx.nodeSelector }}
