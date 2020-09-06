@@ -101,15 +101,27 @@ nginx:
 
   image:
     repository: krewh/hardened-nginx
-    tag: latest
+    tag: 1.1.3
     pullPolicy: Always
 
   config:
     adminAuthorizedIps: 0.0.0.0/0
     dnsOverTlsGateway:
       enabled: false
+      proxyProtocol: false
+      sslTermination: false
     dnsQueryLogging:
       enabled: false
+
+  dotCertificate:
+    create: false
+    name: dot-certificate
+    existingSecret:
+    dnsNames: []
+    issuer:
+      name: letsencrypt-production
+      kind: ClusterIssuer
+      group: cert-manager.io
 
   service:
     type: ClusterIP
