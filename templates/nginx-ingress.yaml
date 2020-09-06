@@ -2,7 +2,7 @@
 {{- $fullName := include "poh.fullname" . -}}
 {{- $nginxName := .Values.nginx.name -}}
 {{- $nginxHttpsPort := .Values.nginx.service.https.port -}}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
