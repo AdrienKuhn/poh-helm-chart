@@ -54,6 +54,11 @@ spec:
               name: nginx-sites
             - mountPath: /etc/nginx/conf.d/streams
               name: nginx-streams
+            {{- if and .Values.nginx.config.dnsOverTlsGateway.enabled .Values.nginx.config.dnsOverTlsGateway.sslTermination }}
+            - name: ssl-certificates
+              mountPath: "/etc/nginx/ssl"
+              readOnly: true
+            {{- end }}
       {{- with .Values.nginx.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -73,3 +78,12 @@ spec:
         - configMap:
             name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}-streams
           name: nginx-streams
+        {{- if .Values.nginx.config.dnsOverTlsGateway.sslTermination }}
+        - name: ssl-certificates
+          secret:
+            {{- if and .Values.nginx.config.dnsOverTlsGateway.enabled .Values.nginx.config.dnsOverTlsGateway.sslTermination .Values.nginx.dotCertificate.create }}
+            secretName: {{ include "poh.fullname" . }}-{{ .Values.nginx.dotCertificate.name }}
+            {{- else if and .Values.nginx.config.dnsOverTlsGateway.enabled .Values.nginx.config.dnsOverTlsGateway.sslTermination }}
+            secretName: {{ .Values.nginx.dotCertificate.existingSecret }}
+            {{- end }}
+        {{- end }}

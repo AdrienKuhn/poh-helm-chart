@@ -1,0 +1,13 @@
+{{- if and .Values.nginx.config.dnsOverTlsGateway.enabled .Values.nginx.dotCertificate.create }}
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: {{ include "poh.fullname" . }}-{{ .Values.nginx.dotCertificate.name }}
+spec:
+  secretName: {{ include "poh.fullname" . }}-{{ .Values.nginx.dotCertificate.name }}
+  dnsNames: {{ .Values.nginx.dotCertificate.dnsNames }}
+  issuerRef:
+    name: {{ .Values.nginx.dotCertificate.issuer.name }}
+    kind: {{ .Values.nginx.dotCertificate.issuer.kind }}
+    group: {{ .Values.nginx.dotCertificate.issuer.group }}
+{{- end }}
