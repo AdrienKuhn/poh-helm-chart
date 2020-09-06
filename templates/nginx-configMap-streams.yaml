@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}-streams
+  labels:
+{{ include "poh.labels" . | indent 4 }}
+data:
+  stream.conf: |
+    {{- if .Values.nginx.config.dnsOverTlsGateway.enabled }}
+    # DNS upstream pool
+    upstream dns {
+        zone dns 64k;
+        server {{ include "poh.fullname" . }}-{{ .Values.pihole.name }}:{{ .Values.pihole.service.dns.port }};
+    }
+
+    # DoT server for decryption
+    server {
+        listen 853 {{- if .Values.nginx.config.dnsOverTlsGateway.sslTermination }} ssl{{- end }} {{- if .Values.nginx.config.dnsOverTlsGateway.proxyProtocol }} proxy_protocol{{- end }};
+
+        {{- if .Values.nginx.config.dnsOverTlsGateway.sslTermination }}
+        ssl_certificate /etc/nginx/ssl/dot/tls.crt;
+        ssl_certificate_key /etc/nginx/ssl/dot/tls.key;
+        {{- end }}
+
+        proxy_pass dns;
+    }
+    {{- end }}

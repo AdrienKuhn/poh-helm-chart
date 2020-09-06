@@ -1,0 +1,18 @@
+{{- if .Values.dohProxy.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "poh.fullname" . }}-{{ .Values.dohProxy.name }}
+  labels:
+{{ include "poh.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.dohProxy.service.type }}
+  ports:
+    - port: {{ .Values.dohProxy.service.port }}
+      targetPort: {{ .Values.dohProxy.service.targetPort }}
+      protocol: {{ .Values.dohProxy.service.protocol }}
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "poh.name" . }}-{{ .Values.dohProxy.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}

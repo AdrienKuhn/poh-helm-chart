@@ -8,15 +8,16 @@ spec:
   replicas: {{ .Values.nginx.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "poh.name" . }}-nginx
+      app.kubernetes.io/name: {{ include "poh.name" . }}-{{ .Values.nginx.name }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "poh.name" . }}-nginx
+        app.kubernetes.io/name: {{ include "poh.name" . }}-{{ .Values.nginx.name }}
         app.kubernetes.io/instance: {{ .Release.Name }}
       annotations:
-        configChecksum: {{ include (print .Template.BasePath "/nginx-configMap.yaml") . | sha256sum | trunc 63 }}
+        sitesConfigChecksum: {{ include (print .Template.BasePath "/nginx-configMap-sites.yaml") . | sha256sum | trunc 63 }}
+        streamsConfigChecksum: {{ include (print .Template.BasePath "/nginx-configMap-streams.yaml") . | sha256sum | trunc 63 }}
     spec:
       restartPolicy: {{ .Values.nginx.restartPolicy }}
     {{- with .Values.nginx.imagePullSecrets }}
@@ -24,13 +25,18 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       containers:
-        - name: {{ .Chart.Name }}-nginx
+        - name: {{ .Chart.Name }}-{{ .Values.nginx.name }}
           image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}"
           imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
           ports:
             - name: https
-              containerPort: 443
+              containerPort: {{ .Values.nginx.service.https.targetPort }}
               protocol: TCP
+            {{- if .Values.nginx.config.dnsOverTlsGateway.enabled }}
+            - name: dot
+              containerPort: {{ .Values.nginx.service.dot.targetPort }}
+              protocol: TCP
+            {{- end }}
           livenessProbe:
             tcpSocket:
               port: 443
@@ -44,8 +50,15 @@ spec:
           resources:
             {{- toYaml .Values.nginx.resources | nindent 12 }}
           volumeMounts:
-            - mountPath: /etc/nginx/conf.d/
-              name: nginx-config
+            - mountPath: /etc/nginx/conf.d/sites
+              name: nginx-sites
+            - mountPath: /etc/nginx/conf.d/streams
+              name: nginx-streams
+            {{- if and .Values.nginx.config.dnsOverTlsGateway.enabled .Values.nginx.config.dnsOverTlsGateway.sslTermination }}
+            - name: ssl-certificates
+              mountPath: "/etc/nginx/ssl/dot"
+              readOnly: true
+            {{- end }}
       {{- with .Values.nginx.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -60,5 +73,17 @@ spec:
     {{- end }}
       volumes:
         - configMap:
-            name: {{ include "poh.fullname" . }}-nginx
-          name: nginx-config
+            name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}-sites
+          name: nginx-sites
+        - configMap:
+            name: {{ include "poh.fullname" . }}-{{ .Values.nginx.name }}-streams
+          name: nginx-streams
+        {{- if .Values.nginx.config.dnsOverTlsGateway.sslTermination }}
+        - name: ssl-certificates
+          secret:
+            {{- if and .Values.nginx.config.dnsOverTlsGateway.enabled .Values.nginx.config.dnsOverTlsGateway.sslTermination .Values.nginx.dotCertificate.create }}
+            secretName: {{ include "poh.fullname" . }}-{{ .Values.nginx.dotCertificate.name }}
+            {{- else if and .Values.nginx.config.dnsOverTlsGateway.enabled .Values.nginx.config.dnsOverTlsGateway.sslTermination }}
+            secretName: {{ .Values.nginx.dotCertificate.existingSecret }}
+            {{- end }}
+        {{- end }}

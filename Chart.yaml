@@ -1,5 +1,5 @@
 apiVersion: v1
-appVersion: "5.0"
-description: A Pi-hole over HTTPS Helm chart for Kubernetes
+appVersion: "v5.1.2"
+description: A Pi-hole with DoH and DoT support Helm chart for Kubernetes
 name: poh
-version: 0.0.12
+version: 0.1.0
